@@ -1,0 +1,78 @@
+// This example is using an Arduino Uno with an ethernet shield. 
+// Arduino Uno connects to the Intel Galileo via a internet router
+// Arduino Uno listens to the web app on a smart phone and dispense candy
+// Servo motor on Arduino digital pin 8,9 
+// LED on digital Pin 2, when there is a connection between Galileo and Uno, the LED flashes.
+// yesyesno 3/18/2014 
+
+#include <SPI.h>         // needed for Arduino versions later than 0018
+#include <Ethernet.h>
+#include <EthernetUdp.h>         // UDP library from: bjoern@cs.stanford.edu 12/30/2008
+#include <Servo.h> 
+
+
+//--------------------------------------- UDP 
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress ip(192, 168, 1, 24);
+unsigned int localPort = 1234;      // local port to listen on
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; //buffer to hold incoming packet,
+EthernetUDP Udp;
+//--------------------------------------- SERVO 
+Servo doorServo;  
+Servo candyServo; 
+unsigned long startTime;
+//--------------------------------------- 
+ 
+int led = 2;
+
+void setup() {
+  // start the Ethernet and UDP:
+  Ethernet.begin(mac,ip);
+  Udp.begin(localPort);
+  
+  // setup servo: 
+  doorServo.attach(8);
+  candyServo.attach(9);
+  startTime = -1000000;    // don't start at start. 
+  
+  pinMode(led, OUTPUT);     
+}
+
+void loop() {
+  
+  // if there's data available, read a packet
+  int packetSize = Udp.parsePacket();
+  if(packetSize){
+    Udp.read(packetBuffer,UDP_TX_PACKET_MAX_SIZE);
+    startTime = millis();
+  }
+  
+  // run the servo code: 
+   unsigned long elapsedTime = millis() - startTime;
+  
+  if (elapsedTime < 3000 && elapsedTime >= 0){
+    
+   int posB = map( elapsedTime, 0, 3000, 180, 85);
+    candyServo.write(posB);
+   
+    int posA = map(elapsedTime, 0, 500, 163, 100);
+    doorServo.write(posA);
+    
+    
+  } else {
+    candyServo.write(180); // start up position
+    // candy close at 180, dispense at 1
+    
+    delay(100);
+    
+    doorServo.write(163);  // start up posistion 
+    //door close at 163, door open at 105
+  }
+  delay(10);
+  
+  if (millis() % 500 < 250){
+    digitalWrite(led, HIGH);
+  } else {
+    digitalWrite(led, LOW);
+  }
+}

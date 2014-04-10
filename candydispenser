@@ -52,21 +52,21 @@ void loop() {
   
   if (elapsedTime < 3000 && elapsedTime >= 0){
     
-   int posB = map( elapsedTime, 0, 3000, 180, 85);
+   int posB = map( elapsedTime, 0, 3000, 180, 55);
     candyServo.write(posB);
    
-    int posA = map(elapsedTime, 0, 500, 163, 100);
+    int posA = map(elapsedTime, 0, 500, 163, 101);
     doorServo.write(posA);
     
     
   } else {
     candyServo.write(180); // start up position
-    // candy close at 180, dispense at 1
+    // candy close at 180, dispense at 55
     
     delay(100);
     
     doorServo.write(163);  // start up posistion 
-    //door close at 163, door open at 105
+    //door close at 163, door open at 101
   }
   delay(10);
   
